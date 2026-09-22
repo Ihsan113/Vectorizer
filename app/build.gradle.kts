@@ -11,8 +11,8 @@ android {
         applicationId = "com.danzku.imagetoeps"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.3.0"
 
         externalNativeBuild {
             cmake {
@@ -37,14 +37,7 @@ android {
             isMinifyEnabled = false
         }
     }
-
-    packaging {
-        jniLibs {
-            useLegacyPackaging = false
-        }
-    }
 }
-
 dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-ktx:1.10.1")

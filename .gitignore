@@ -4,6 +4,6 @@ build/
 */build/
 local.properties
 *.iml
-.DS_Store
-.externalNativeBuild/
 .cxx/
+.externalNativeBuild/
+.DS_Store
