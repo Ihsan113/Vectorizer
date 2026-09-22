@@ -1,20 +1,12 @@
 package com.danzku.imagetoeps
 
-import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.opengl.GLSurfaceView
 import android.os.Bundle
-import android.provider.MediaStore
-import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import java.io.File
-import java.io.FileOutputStream
-import java.io.InputStream
-import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     private lateinit var imageView: ImageView
@@ -22,8 +14,12 @@ class MainActivity : AppCompatActivity() {
     private var bitmap: Bitmap? = null
 
     private external fun nativeToEps(
-        pixels: IntArray, width: Int, height: Int,
-        threshold: Int, cell: Int, outPath: String
+        pixels: IntArray,
+        width: Int,
+        height: Int,
+        threshold: Int,
+        cell: Int,
+        outPath: String
     ): String
 
     private val picker = registerForActivityResult(
@@ -44,18 +40,16 @@ class MainActivity : AppCompatActivity() {
             setPadding(24, 24, 24, 24)
         }
 
-        val title = TextView(this).apply {
+        root.addView(TextView(this).apply {
             text = "Image → EPS"
             textSize = 26f
-            setPadding(0, 0, 0, 12)
-        }
-        root.addView(title)
+            setPadding(0, 0, 0, 8)
+        })
 
-        val gpu = TextView(this).apply {
-            text = "GPU preview: OpenGL ES pipeline ready"
+        root.addView(TextView(this).apply {
+            text = "Native C++ vector engine • OpenGL ES available"
             setPadding(0, 0, 0, 12)
-        }
-        root.addView(gpu)
+        })
 
         imageView = ImageView(this).apply {
             adjustViewBounds = true
@@ -64,41 +58,37 @@ class MainActivity : AppCompatActivity() {
         }
         root.addView(imageView, LinearLayout.LayoutParams(-1, 0, 1f))
 
-        val seek = SeekBar(this).apply {
+        root.addView(TextView(this).apply { text = "Threshold" })
+        val threshold = SeekBar(this).apply {
             max = 255
             progress = 150
         }
-        root.addView(TextView(this).apply { text = "Threshold" })
-        root.addView(seek)
+        root.addView(threshold)
 
+        root.addView(TextView(this).apply { text = "Detail / cell size (lower = more detail)" })
         val detail = SeekBar(this).apply {
-            max = 32
-            progress = 4
+            max = 31
+            progress = 3
         }
-        root.addView(TextView(this).apply { text = "Vector detail / cell size" })
         root.addView(detail)
 
-        val buttons = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-        }
-        val choose = Button(this).apply {
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+
+        row.addView(Button(this).apply {
             text = "Choose image"
             setOnClickListener { picker.launch("image/*") }
-        }
-        val export = Button(this).apply {
+        }, LinearLayout.LayoutParams(0, -2, 1f))
+
+        row.addView(Button(this).apply {
             text = "Export EPS"
             setOnClickListener {
-                val b = bitmap
-                if (b == null) {
-                    status.text = "Choose an image first."
-                    return@setOnClickListener
-                }
-                exportEps(b, seek.progress, (detail.progress + 1).coerceAtLeast(1))
+                bitmap?.let {
+                    exportEps(it, threshold.progress, detail.progress + 1)
+                } ?: run { status.text = "Choose an image first." }
             }
-        }
-        buttons.addView(choose, LinearLayout.LayoutParams(0, -2, 1f))
-        buttons.addView(export, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(buttons)
+        }, LinearLayout.LayoutParams(0, -2, 1f))
+
+        root.addView(row)
 
         status = TextView(this).apply {
             text = "Ready."
@@ -133,24 +123,19 @@ class MainActivity : AppCompatActivity() {
                 val pixels = IntArray(w * h)
                 source.getPixels(pixels, 0, w, 0, 0, w, h)
 
-                val out = File(
+                val out = java.io.File(
                     getExternalFilesDir(null),
                     "image_${System.currentTimeMillis()}.eps"
                 )
-                val result = nativeToEps(pixels, w, h, threshold, cell, out.absolutePath)
 
-                runOnUiThread {
-                    status.text = "EPS saved:\n$result"
-                }
+                val result = nativeToEps(
+                    pixels, w, h, threshold, cell, out.absolutePath
+                )
+
+                runOnUiThread { status.text = "EPS saved:\n$result" }
             } catch (e: Exception) {
                 runOnUiThread { status.text = "Export error: ${e.message}" }
             }
         }.start()
-    }
-
-    companion object {
-        init {
-            // Native library is loaded in onCreate.
-        }
     }
 }

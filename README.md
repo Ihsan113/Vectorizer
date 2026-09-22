@@ -1,50 +1,28 @@
-# Image → EPS Android
+# ImageToEPS
 
-MVP Android app for converting raster images into real vector EPS paths.
+Android Image → EPS MVP.
 
-## Current architecture
+## Build
 
-- Kotlin Android UI
-- C++ NDK native vector engine
-- OpenGL ES 3 library linked for the GPU pipeline
-- GitHub Actions builds the APK
-- No cloud image upload required
+GitHub Actions installs only valid Android SDK packages:
+- platform-tools
+- Android 35 platform
+- build-tools 35.0.0
+- NDK 27.2.12479018
+- CMake 3.22.1
 
-## Current vectorizer
+There is intentionally **no `sdkmanager tools` command** because `tools` is not a valid modern SDK package.
 
-The first MVP uses grayscale thresholding and emits vector rectangles as PostScript paths.
-It is deliberately simple so the project has a reliable end-to-end pipeline.
+## Runtime
 
-### Next engine upgrade
+The current engine is a CPU native vector-cell tracer. OpenGL ES 3 is linked and the project is prepared for the next GPU preprocessing stage.
 
-Replace the cell vectorizer with:
+Important: linking GLES does not magically move the vectorizer to the GPU. The next engine revision can implement actual OpenGL ES shader preprocessing (grayscale, thresholding, blur/edge passes) before CPU contour/path extraction.
 
-1. GPU grayscale / denoise
-2. GPU threshold / segmentation
-3. connected-component extraction
-4. contour tracing
-5. Ramer-Douglas-Peucker simplification
-6. cubic Bézier fitting
-7. multi-color vector layers
-8. EPS path output
+## Output
 
-That will produce much cleaner SVG/EPS-style artwork from logos, illustrations, icons and line art.
-
-## Build locally
-
-Open in Android Studio with Android SDK 35 and NDK installed.
-
-Or use Gradle:
-
-```bash
-./gradlew assembleDebug
-```
+The MVP produces real EPS/PostScript vector rectangles. It is not a raster image renamed to `.eps`.
 
 ## GitHub Actions
 
-Push the repository to GitHub. The workflow at
-`.github/workflows/android.yml` builds a debug APK automatically and
-publishes it as an Actions artifact.
-
-The build does not use a GitHub-hosted GPU. The phone GPU is used by
-the application at runtime when the GPU preprocessing pipeline is enabled.
+Push to GitHub and Actions will build the debug APK and expose it as an artifact named `ImageToEPS-debug`.
