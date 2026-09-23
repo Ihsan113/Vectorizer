@@ -14,12 +14,8 @@ class MainActivity : AppCompatActivity() {
     private var bitmap: Bitmap? = null
 
     private external fun nativeToEps(
-        pixels: IntArray,
-        width: Int,
-        height: Int,
-        threshold: Int,
-        cell: Int,
-        output: String
+        pixels: IntArray, width: Int, height: Int,
+        threshold: Int, cell: Int, output: String
     ): String
 
     private val picker = registerForActivityResult(
@@ -37,17 +33,12 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             setPadding(24,24,24,24)
         }
-
         root.addView(TextView(this).apply {
-            text = "Image → EPS"
-            textSize = 26f
+            text = "Image → EPS"; textSize = 26f
         })
-
         root.addView(TextView(this).apply {
-            text = "Native vector engine • GPU pipeline ready for next stage"
-            setPadding(0,8,0,12)
+            text = "Native C++ vector engine"; setPadding(0,8,0,12)
         })
-
         preview = ImageView(this).apply {
             adjustViewBounds = true
             scaleType = ImageView.ScaleType.FIT_CENTER
@@ -56,37 +47,27 @@ class MainActivity : AppCompatActivity() {
         root.addView(preview, LinearLayout.LayoutParams(-1,0,1f))
 
         root.addView(TextView(this).apply { text = "Threshold" })
-        val threshold = SeekBar(this).apply {
-            max=255
-            progress=150
-        }
+        val threshold = SeekBar(this).apply { max=255; progress=150 }
         root.addView(threshold)
 
         root.addView(TextView(this).apply { text = "Detail / cell size" })
-        val detail = SeekBar(this).apply {
-            max=31
-            progress=3
-        }
+        val detail = SeekBar(this).apply { max=31; progress=3 }
         root.addView(detail)
 
-        val row=LinearLayout(this)
+        val row = LinearLayout(this)
         row.addView(Button(this).apply {
-            text="Choose"
-            setOnClickListener { picker.launch("image/*") }
-        },LinearLayout.LayoutParams(0,-2,1f))
+            text="Choose"; setOnClickListener { picker.launch("image/*") }
+        }, LinearLayout.LayoutParams(0,-2,1f))
         row.addView(Button(this).apply {
             text="Export EPS"
             setOnClickListener {
-                bitmap?.let { export(it,threshold.progress,detail.progress+1) }
+                bitmap?.let { export(it, threshold.progress, detail.progress+1) }
                     ?: run { status.text="Choose an image first." }
             }
-        },LinearLayout.LayoutParams(0,-2,1f))
+        }, LinearLayout.LayoutParams(0,-2,1f))
         root.addView(row)
 
-        status=TextView(this).apply {
-            text="Ready"
-            setPadding(0,12,0,0)
-        }
+        status=TextView(this).apply { text="Ready"; setPadding(0,12,0,0) }
         root.addView(status)
         setContentView(root)
     }
@@ -95,18 +76,16 @@ class MainActivity : AppCompatActivity() {
         try {
             contentResolver.openInputStream(uri).use {
                 val b=BitmapFactory.decodeStream(it)
-                if(b!=null){
+                if(b!=null) {
                     bitmap=b.copy(Bitmap.Config.ARGB_8888,false)
                     preview.setImageBitmap(bitmap)
                     status.text="Loaded ${b.width} × ${b.height}"
                 }
             }
-        } catch(e:Exception) {
-            status.text="Load error: ${e.message}"
-        }
+        } catch(e:Exception) { status.text="Load error: ${e.message}" }
     }
 
-    private fun export(source:Bitmap,threshold:Int,cell:Int) {
+    private fun export(source:Bitmap, threshold:Int, cell:Int) {
         status.text="Vectorizing..."
         Thread {
             try {

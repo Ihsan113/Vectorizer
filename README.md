@@ -1,28 +1,16 @@
-# ImageToEPS 0.3.0
+# ImageToEPS v0.4.0
 
 Clean Android Image → EPS MVP.
 
-## GitHub Actions
+This archive intentionally contains NO `.git` directory, build cache, or old workflows.
 
-The workflow contains NO `sdkmanager tools` command.
+The GitHub workflow does NOT use `android-actions/setup-android@v3`, and contains no `packages: tools` setting and no `sdkmanager tools` command.
 
-It installs only:
+It uses the Android SDK already present on the GitHub-hosted runner and installs only:
 - platform-tools
 - platforms;android-35
 - build-tools;35.0.0
 - ndk;27.2.12479018
 - cmake;3.22.1
 
-Then Gradle builds `assembleDebug`.
-
-## Runtime
-
-The native C++ engine creates actual EPS vector paths using vector rectangles.
-
-OpenGL ES 3 is linked and reserved for the next GPU preprocessing implementation.
-This MVP does not claim that the CPU vectorizer is already GPU accelerated.
-
-## Output
-
-APK artifact:
-`ImageToEPS-debug`
+The current native engine produces real EPS vector rectangles. OpenGL ES 3 is linked for a future GPU preprocessing stage; the current vectorizer is not falsely represented as GPU-accelerated.
